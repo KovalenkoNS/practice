@@ -38,20 +38,32 @@ void Vvod()
 	M.resize(k);
 	A.resize(k);
 	X.resize(k);
-	Y.resize(k);
+	//Y.resize(k);
 	//Ввод использующихся каналов
 	for (size_t i = 0; i < k; i++)
 	{
 		fl = true;
 		while (fl)
 		{
-			cout << "Введите номер датчика M[" << i << "] для опроса (11-90) ";
+			cout << "Введите номер датчика M[" << i << "] для опроса (1-6 или 11-90) ";
 			cin >> M[i];
 			if (M[i] < 91 && M[i] > 10)
 			{
 				fl = false;
 			}
-			else
+			if (M[i] > 0 && M[i] < 7 ) 
+			{
+				fl = false;
+			}
+			if(M[i] < 0)
+			{
+				cout << "Ошибка: неправильный диапазон" << "\n";
+			}
+			if (M[i] < 11 && M[i] > 6) 
+			{
+				cout << "Ошибка: неправильный диапазон" << "\n";
+			}
+			if (M[i] > 90) 
 			{
 				cout << "Ошибка: неправильный диапазон" << "\n";
 			}
@@ -119,13 +131,14 @@ void Vvod()
 			cout << "Ошибка: введите натуральное число" << "\n";
 		}
 	}
+	Y.resize(N);
 	//Ввод коэффициентов
 	for (size_t i = 0; i < k; i++)
 	{
 		fl = true;
 		while (fl)
 		{
-			cout << "Введите [" << i << "]й коэффициент, определяющий закон управления ";
+			cout << "Введите " << i << " - й коэффициент, определяющий закон управления ";
 			cin >> A[i];
 			if (A[i] != 0)
 			{
@@ -149,25 +162,47 @@ int main()
 	Plant plant;
 	plant_init(plant);
 	Vvod();
-
 	//опрос каналов и запись их в X[i]
 	cout << endl;
-	cout << "Внимание!В случае если величина управляющего значения будет выходить за рамки допустимых, она будет приведена к верхней(нижней грани) допустимых значений"<<endl;
-	for (size_t i = 0; i < N; i++)
+	cout << "Внимание!В случае если величина управляющего значения будет выходить за рамки допустимых, она будет приведена к верхней(нижней) грани допустимых значений"<<endl<<endl;
+	cout << " №       ";
+
+	for (size_t i = 0; i < k; i++)
 	{
+		cout << " X" << i +1 << "      ";
+	}
+
+	cout << "  U        " << "   Y        " << "   C        ";
+
+	cout << endl;
+
+	for (size_t j = 0; j < N; j++)
+	{
+		if (j < 9) 
+		{
+			cout << " " <<j + 1 << "   ";
+		}
+		else 
+		{
+			cout << j + 1 << "   ";
+		}
 
 		for (size_t i = 0; i < k; i++)
 		{
 			X[i] = plant_measure(M[i], plant);
+			if (X[i]>0) 
+			{
+				cout << " ";
+			}
+			cout << X[i] << "    ";
 		}
-
 		U = A[0];
 		for (size_t i = 1; i < k; i++)
 		{
 			U = U + (A[i] * X[i]);
 		}
-		cout << endl;
-		cout << "U=" << U << endl;
+
+		cout << U << "      ";
 		
 		switch (P)
 		{
@@ -180,6 +215,11 @@ int main()
 			{
 				U = -70;
 			}
+			if (U <= 70 && U >= -70)
+			{
+				U = U;
+			}
+			//cout << "новое значение U=" << U<<endl;
 			break;
 		case 8:
 			if (U>3)
@@ -190,6 +230,11 @@ int main()
 			{
 				U = -3;
 			}
+			if (U <= 3 && U >= -3)
+			{
+				U = U;
+			}
+			//cout << "новое значение U=" << U<<endl;
 			break;
 		case 9:
 			if (U > 5)
@@ -200,6 +245,11 @@ int main()
 			{
 				U = -5;
 			}
+			if (U <= 5 && U >= -5)
+			{ 
+				U = U; 
+			}
+			//cout << "новое значение U=" << U<<endl;
 			break;
 		case 10:
 			if (U > 2.5)
@@ -210,17 +260,27 @@ int main()
 			{
 				U = -2.5;
 			}
+			if (U <= 2.5 && U >=-2.5)
+			{
+				U = U;
+			}
+			//cout << "новое значение U=" << U<<endl;
 			break;
-
 		default:
 			break;
 		}
+
 		plant_control(P, U, plant);
-		Y[i] = plant_measure(H, plant);
-		cout << "Y[" << i << "]=" << Y[i] << endl;
-		C += pow((Y[i] - Ynom), 2);
-		cout << "C=" << C<<endl<<endl;
+		Y[j] = plant_measure(H, plant);
+		cout <<Y[j] << "      ";
+		C += pow( (Y[j] - Ynom), 2 );
+		cout << C << endl;
 	}
+
+
+
+
+
 	cout << endl;
 	C1 = C / N;
 	cout << "C1=" << C1 << endl;
